@@ -10,6 +10,11 @@ import numpy as np
 import pandas as pd
 
 
+class TestSetError(t.NamedTuple):
+    rmse: float
+    mae: float
+
+
 class ResponseFunctionABC:
     @abc.abstractmethod
     def __call__(self, a1: float, a2: float):
@@ -31,21 +36,20 @@ class TrainTestExecutorABC(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def __call__(self, rating_matrix: pd.DataFrame, test_size: float) -> t.Dict[str, t.Any]:
+    def __call__(self, rating_matrix: pd.DataFrame, test_size: float) -> TestSetError:
         pass
 
 
 class TrainTestExecutorConfig(t.NamedTuple):
     factory: t.Type[TrainTestExecutorABC]
     model_name: str
-    config: dict
-    args: list 
+    args: dict 
 
 
 class EvaluationResult(t.NamedTuple):
     a1: float
     a2: float
-    train_test_log: t.Any 
+    test_error: TestSetError 
 
 
 class _SubProcessArgs(t.NamedTuple):
@@ -58,7 +62,7 @@ class _SubProcessArgs(t.NamedTuple):
 
 def _iterate_over_a2_job(args: _SubProcessArgs) -> t.List[EvaluationResult]:
     print(f"Subprocess started.")
-    train_fn = args.train_test_executor_config.factory(*args.train_test_executor_config.args)
+    train_fn = args.train_test_executor_config.factory(**args.train_test_executor_config.args)
     response_function = args.resp_fn_config.factory(*args.resp_fn_config.args)
     sample_rate = args.a_sample_rate
 
@@ -67,8 +71,8 @@ def _iterate_over_a2_job(args: _SubProcessArgs) -> t.List[EvaluationResult]:
     for a2 in range(0, sample_rate - args.a1):
         a2_normalized = a2 / sample_rate 
         ground_truth_matrix = response_function(a1_normalized, a2_normalized)
-        train_test_log = train_fn(rating_matrix=ground_truth_matrix, test_size=args.test_size)
-        result = EvaluationResult(a1=a1_normalized, a2=a2_normalized, train_test_log=train_test_log)
+        test_error = train_fn(rating_matrix=ground_truth_matrix, test_size=args.test_size)
+        result = EvaluationResult(a1=a1_normalized, a2=a2_normalized, test_error=test_error)
         logging.info(f"{train_fn.model_name} - {result}")
         results.append(result)
     return results
@@ -109,6 +113,6 @@ class Evaluator:
         return {
             "duration": duration,
             "model_name": executor_config.model_name,
-            "model_config": executor_config.config,
+            "model_args": executor_config.args,
             "results": list(itertools.chain.from_iterable(results))
         }

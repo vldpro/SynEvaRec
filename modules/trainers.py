@@ -32,7 +32,7 @@ class SvdTrainTestExecutor(evaluator.TrainTestExecutorABC):
     def config(self) -> dict:
         return self._config
 
-    def __call__(self, rating_matrix: pd.DataFrame, test_size: float) -> dict:
+    def __call__(self, rating_matrix: pd.DataFrame, test_size: float) -> evaluator.TestSetError:
         long_table  = _rating_matrix_to_long_table(rating_matrix)
         dataset = surprise.Dataset.load_from_df(long_table[['user_id', 'item_id', 'rating']], surprise.Reader(rating_scale=(0, 2)))
         train_set, test_set = sm.train_test_split(dataset, test_size=test_size)
@@ -40,7 +40,10 @@ class SvdTrainTestExecutor(evaluator.TrainTestExecutorABC):
         algo = surprise.SVD(**self._config)
         algo.fit(train_set)
         predictions = algo.test(test_set)
-        return {"test_rmse": [surprise.accuracy.rmse(predictions)]}
+        return evaluator.TestSetError(
+            rmse=surprise.accuracy.rmse(predictions),
+            mae=surprise.accuracy.mae(predictions)
+        )
 
 
 class KnnTrainTestExecutor(evaluator.TrainTestExecutorABC):
@@ -55,7 +58,7 @@ class KnnTrainTestExecutor(evaluator.TrainTestExecutorABC):
     def config(self) -> dict:
         return self._config
 
-    def __call__(self, rating_matrix: pd.DataFrame, test_size: float) -> dict:
+    def __call__(self, rating_matrix: pd.DataFrame, test_size: float) -> evaluator.TestSetError:
         long_table  = _rating_matrix_to_long_table(rating_matrix)
         dataset = surprise.Dataset.load_from_df(long_table[['user_id', 'item_id', 'rating']], surprise.Reader(rating_scale=(0, 2)))
         train_set, test_set = sm.train_test_split(dataset, test_size=test_size)
@@ -63,7 +66,11 @@ class KnnTrainTestExecutor(evaluator.TrainTestExecutorABC):
         algo = surprise.KNNBasic(**self._config)
         algo.fit(train_set)
         predictions = algo.test(test_set)
-        return {"test_rmse": [accuracy.rmse(predictions)]}
+
+        return evaluator.TestSetError(
+            rmse=surprise.accuracy.rmse(predictions),
+            mae=surprise.accuracy.mae(predictions)
+        )
 
 
 class AutoRecTrainTestExecutor(evaluator.TrainTestExecutorABC):
@@ -78,7 +85,7 @@ class AutoRecTrainTestExecutor(evaluator.TrainTestExecutorABC):
     def config(self) -> dict:
         return self._config
 
-    def __call__(self, rating_matrix: pd.DataFrame, test_size: float) -> dict:
+    def __call__(self, rating_matrix: pd.DataFrame, test_size: float) -> evaluator.TestSetError:
         long_table  = _rating_matrix_to_long_table(rating_matrix)
         train_matrix, test_matrix, n_users, n_items = self._transform_long_table_to_sparse_matrix(long_table, test_size)
         config = tf.compat.v1.ConfigProto()
@@ -87,7 +94,10 @@ class AutoRecTrainTestExecutor(evaluator.TrainTestExecutorABC):
             model = models.IAutoRec(sess, n_users, n_items, **self._config)
             model.build_network()
             errors_log = model.execute(train_matrix, test_matrix)
-            return errors_log
+            return evaluator.TestSetError(
+                rmse=errors_log[-1]["rmse"],
+                mae=errors_log[-1]["mae"],
+            )
 
     def _transform_long_table_to_sparse_matrix(self, df, test_size):
         n_users = df.user_id.unique().shape[0]
