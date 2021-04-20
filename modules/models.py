@@ -88,20 +88,26 @@ class IAutoRec():
             pred_rating_test = self.predict(u, i)
             error += (float(test_data.get((u, i))) - pred_rating_test) ** 2
             error_mae += (np.abs(float(test_data.get((u, i))) - pred_rating_test))
-        print("RMSE:" + str(RMSE(error, len(test_set))) + "; MAE:" + str(MAE(error_mae, len(test_set))))
+        rmse, mae = RMSE(error, len(test_set)), MAE(error_mae, len(test_set))
+        print("RMSE:" + str(rmse) + "; MAE:" + str(mae))
+        return rmse, mae
 
     def execute(self, train_data, test_data):
         self.train_data = self._data_process(train_data)
         self.train_data_mask = scipy.sign(self.train_data)
         init = tf.global_variables_initializer()
         self.sess.run(init)
+
+        errors_log = [] 
         for epoch in range(self.epochs):
             if self.verbose:
                 print("Epoch: %04d;" % (epoch))
             self.train(train_data)
             if (epoch) % self.T == 0:
                 print("Epoch: %04d; " % (epoch), end='')
-                self.test(test_data)
+                rmse, mae = self.test(test_data)
+                errors_log.append({"epoch": epoch, "rmse": rmse, "mae": mae})
+        return errors_log
 
     def save(self, path):
         saver = tf.train.Saver()
