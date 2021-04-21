@@ -16,10 +16,10 @@ def reformat_evaluation_results_to_single_dataframe(eval_results_list: t.List[t.
 
 
 def group_points_by_minimum_error(points_df) -> pd.DataFrame:
-    groupped = points_df[["a1", "a2", "rmse"]].groupby(
-        by=["a1", "a2"], as_index=False
+    groupped = points_df[["a1", "a2", "rmse", "sample_size"]].groupby(
+        by=["a1", "a2", "sample_size"], as_index=False
     ).min().join(
-        points_df.set_index(["a1", "a2", "rmse"]), 
-        on=["a1", "a2", "rmse"]
+        points_df.set_index(["a1", "a2", "rmse", "sample_size"]), 
+        on=["a1", "a2", "rmse", "sample_size"]
     )
     return groupped
