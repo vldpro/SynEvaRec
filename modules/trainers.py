@@ -32,8 +32,9 @@ class SvdTrainTestExecutor(evaluator.TrainTestExecutorABC):
     def config(self) -> dict:
         return self._config
 
-    def __call__(self, rating_matrix: pd.DataFrame, test_size: float) -> evaluator.TestSetError:
+    def __call__(self, rating_matrix: pd.DataFrame, test_size: float, sample_size: float) -> evaluator.TestSetError:
         long_table  = _rating_matrix_to_long_table(rating_matrix)
+        long_table = long_table.sample(frac=sample_size)
         dataset = surprise.Dataset.load_from_df(long_table[['user_id', 'item_id', 'rating']], surprise.Reader(rating_scale=(0, 2)))
         train_set, test_set = sm.train_test_split(dataset, test_size=test_size)
 
@@ -58,8 +59,9 @@ class KnnTrainTestExecutor(evaluator.TrainTestExecutorABC):
     def config(self) -> dict:
         return self._config
 
-    def __call__(self, rating_matrix: pd.DataFrame, test_size: float) -> evaluator.TestSetError:
+    def __call__(self, rating_matrix: pd.DataFrame, test_size: float, sample_size: float) -> evaluator.TestSetError:
         long_table  = _rating_matrix_to_long_table(rating_matrix)
+        long_table = long_table.sample(frac=sample_size)
         dataset = surprise.Dataset.load_from_df(long_table[['user_id', 'item_id', 'rating']], surprise.Reader(rating_scale=(0, 2)))
         train_set, test_set = sm.train_test_split(dataset, test_size=test_size)
 
@@ -85,8 +87,9 @@ class AutoRecTrainTestExecutor(evaluator.TrainTestExecutorABC):
     def config(self) -> dict:
         return self._config
 
-    def __call__(self, rating_matrix: pd.DataFrame, test_size: float) -> evaluator.TestSetError:
+    def __call__(self, rating_matrix: pd.DataFrame, test_size: float, sample_size: float) -> evaluator.TestSetError:
         long_table  = _rating_matrix_to_long_table(rating_matrix)
+        long_table = long_table.sample(frac=sample_size)
         train_matrix, test_matrix, n_users, n_items = self._transform_long_table_to_sparse_matrix(long_table, test_size)
         config = tf.compat.v1.ConfigProto()
         config.gpu_options.allow_growth = True
