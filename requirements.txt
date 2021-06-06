@@ -7,3 +7,4 @@ deepctr-torch
 scikit-surprise
 plotly==4.14.3
 seaborn
+kaleido
