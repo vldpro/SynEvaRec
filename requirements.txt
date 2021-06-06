@@ -1,0 +1,9 @@
+jupyterlab==3.0.14
+numpy==1.20.1
+sdv==0.8.0
+pandas
+scipy
+deepctr-torch
+scikit-surprise
+plotly==4.14.3
+seaborn
