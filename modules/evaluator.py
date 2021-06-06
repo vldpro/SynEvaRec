@@ -78,21 +78,22 @@ def _iterate_over_a2_job(args: _SubProcessArgs) -> t.List[EvaluationResult]:
         a2_normalized = a2 / sample_rate 
         ground_truth_matrix = response_function(a1_normalized, a2_normalized)
         for sample_size in args.sample_sizes:
-            start = datetime.datetime.utcnow()
-            test_error = train_fn(rating_matrix=ground_truth_matrix, test_size=args.test_size, sample_size=sample_size)
-            duration = datetime.datetime.utcnow() - start
-            result = EvaluationResult(
-                a1=a1_normalized, 
-                a2=a2_normalized,
-                rmse=test_error.rmse,
-                mae=test_error.mae,
-                sample_size=sample_size,
-                model_name=train_fn.model_name,
-                test_size=args.test_size,
-                calculation_time=duration
-            )
-            logging.info(f"{train_fn.model_name} - {result}")
-            results.append(result)
+            for _ in range(4):
+                start = datetime.datetime.utcnow()
+                test_error = train_fn(rating_matrix=ground_truth_matrix, test_size=args.test_size, sample_size=sample_size)
+                duration = datetime.datetime.utcnow() - start
+                result = EvaluationResult(
+                    a1=a1_normalized, 
+                    a2=a2_normalized,
+                    rmse=test_error.rmse,
+                    mae=test_error.mae,
+                    sample_size=sample_size,
+                    model_name=train_fn.model_name,
+                    test_size=args.test_size,
+                    calculation_time=duration
+                )
+                logging.info(f"{train_fn.model_name} - {result}")
+                results.append(result)
     return results
 
 
