@@ -3,6 +3,8 @@ import scipy
 import tensorflow.compat.v1 as tf
 import numpy as np
 
+# Original https://github.com/cheungdaven/DeepRec/blob/master/models/rating_prediction/autorec.py
+
 __author__ = "Shuai Zhang"
 __copyright__ = "Copyright 2018, The DeepRec Project"
 
