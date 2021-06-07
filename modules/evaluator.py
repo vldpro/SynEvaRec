@@ -78,7 +78,7 @@ def _iterate_over_a2_job(args: _SubProcessArgs) -> t.List[EvaluationResult]:
         a2_normalized = a2 / sample_rate 
         ground_truth_matrix = response_function(a1_normalized, a2_normalized)
         for sample_size in args.sample_sizes:
-            for _ in range(4):
+            for _ in range(10):
                 start = datetime.datetime.utcnow()
                 test_error = train_fn(rating_matrix=ground_truth_matrix, test_size=args.test_size, sample_size=sample_size)
                 duration = datetime.datetime.utcnow() - start

@@ -2,6 +2,7 @@ import time
 import scipy
 import tensorflow.compat.v1 as tf
 import numpy as np
+from deepctr_torch.models import DeepFM
 
 # Original https://github.com/cheungdaven/DeepRec/blob/master/models/rating_prediction/autorec.py
 
@@ -125,3 +126,34 @@ class IAutoRec():
                 output[u, i] = data.get((u, i))
         return output
 
+
+class DeepFmModel:
+    def __init__(self, linear_feature_columns, dnn_feature_columns, feature_names):
+        self._linear_feature_columns = linear_feature_columns
+        self._dnn_feature_columns = dnn_feature_columns
+        self._feature_names = feature_names
+        self._deepfm = DeepFM(
+            self._linear_feature_columns,
+            self._dnn_feature_columns,
+            task='multiclass',
+            device='cpu'
+        )
+        self._deepfm.compile("adam", "mse", metrics=['mse'], )
+        
+    def train(self, train_set, target_values):
+        train_model_input = {n: train_set[n] for n in self._feature_names}
+        history = self._deepfm.fit(
+            train_model_input,
+            target_values,
+            batch_size=256,
+            epochs=10,
+            verbose=2,
+            validation_split=0.2
+        )
+
+        return history
+
+    def predict(self, test_set):
+        test_model_input = {n: test_set[n] for n in self._feature_names}
+        result = self._deepfm.predict(test_model_input, batch_size=256)
+        return result
