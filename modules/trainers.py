@@ -35,7 +35,7 @@ class SvdTrainTestExecutor(evaluator.TrainTestExecutorABC):
     def __call__(self, rating_matrix: pd.DataFrame, test_size: float, sample_size: float) -> evaluator.TestSetError:
         long_table  = _rating_matrix_to_long_table(rating_matrix)
         long_table = long_table.sample(frac=sample_size)
-        dataset = surprise.Dataset.load_from_df(long_table[['user_id', 'item_id', 'rating']], surprise.Reader(rating_scale=(0, 2)))
+        dataset = surprise.Dataset.load_from_df(long_table[['user_id', 'item_id', 'rating']], surprise.Reader(rating_scale=(0, 1)))
         train_set, test_set = sm.train_test_split(dataset, test_size=test_size)
 
         algo = surprise.SVD(**self._config)
@@ -62,7 +62,7 @@ class KnnTrainTestExecutor(evaluator.TrainTestExecutorABC):
     def __call__(self, rating_matrix: pd.DataFrame, test_size: float, sample_size: float) -> evaluator.TestSetError:
         long_table  = _rating_matrix_to_long_table(rating_matrix)
         long_table = long_table.sample(frac=sample_size)
-        dataset = surprise.Dataset.load_from_df(long_table[['user_id', 'item_id', 'rating']], surprise.Reader(rating_scale=(0, 2)))
+        dataset = surprise.Dataset.load_from_df(long_table[['user_id', 'item_id', 'rating']], surprise.Reader(rating_scale=(0, 1)))
         train_set, test_set = sm.train_test_split(dataset, test_size=test_size)
 
         algo = surprise.KNNBasic(**self._config)
