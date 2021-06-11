@@ -4,7 +4,7 @@
 
 `/notebooks` contians jupyter notebooks, that a part of experiments.
 
-`/other` contains notebooks's drafts and some notebooks with data transformation.
+`/other` contains notebooks for data prerprocessing. 
 
 `/data` datasets used for the research.
 
