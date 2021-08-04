@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "synevarec"
+version = "0.1.0"
+description = ""
+authors = ["Vladimir ProvaLove <vladimir.provalov@emlid.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.9"
+jupyterlab = "^3.1.2"
+numpy = "1.18.5"
+sdv = "0.8.0"
+pandas = "1.1.4"
+scipy = "1.7.1"
+scikit-surprise = "1.1.1"
+seaborn = "0.11.1"
+kaleido = "0.2.1"
+tensorflow = "2.3.3"
+deepctr-torch = "0.2.5"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
