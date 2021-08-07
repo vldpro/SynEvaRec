@@ -1,5 +1,4 @@
-Pipfile
-Pipfile.lock
+datasets/
 .DS_Store
 .vscode/
 # Byte-compiled / optimized / DLL files
