@@ -1,5 +1,6 @@
 import typing as t
 
+import surprise
 from surprise import KNNBasic, SVD
 from surprise import Dataset, Reader
 from surprise.model_selection import cross_validate
@@ -40,23 +41,31 @@ def map_idx_to_matrix_indices(df):
     return df
 
 
-def train_svd(df):
-    reader = Reader(rating_scale=(0, 1))
-    data = Dataset.load_from_df(df[['user_id', 'item_id', 'rating']], reader)
+class GenericSurpriseModel:
+    def __init__(self, model):
+        self.model = model 
+    
+    def evaluate(self, df, rating_scale=(0, 1), test_size=0.1):
+        reader = Reader(rating_scale=rating_scale)
+        dataset = Dataset.load_from_df(df[['user_id', 'item_id', 'rating']], reader)
+        trainset, testset = surprise.model_selection.train_test_split(dataset, test_size=test_size)
 
-    svd_algo = SVD()
-    error = cross_validate(svd_algo, data, cv=2)
-    return error
+        self.model.fit(trainset)
+        predictions = self.model.test(testset)
+        return surprise.accuracy.rmse(predictions)
 
 
-def train_knn(df):
-    reader = Reader(rating_scale=(0, 1))
-    data = Dataset.load_from_df(df[['user_id', 'item_id', 'rating']], reader)
+def evaluate_svd(df):
+    model = GenericSurpriseModel(surprise.SVD())
+    return model.evaluate(df)
 
-    svd_algo = KNNBasic()
-    error = cross_validate(svd_algo, data, cv=2)
-    return error
 
-def train_autorec(df):
+def evaluate_knn(df):
+    model = GenericSurpriseModel(surprise.KNNBasic())
+    return model.evaluate(df)
+
+
+def evaluate_autorec(df):
     _, error_log = models.train_test_autorec(df)
-    return error_log
+    min_rmse = min(e["rmse"] for e in error_log)
+    return min_rmse 
