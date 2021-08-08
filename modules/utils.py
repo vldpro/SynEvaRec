@@ -1,5 +1,10 @@
 import typing as t
 
+from surprise import KNNBasic, SVD
+from surprise import Dataset, Reader
+from surprise.model_selection import cross_validate
+from modules import models
+
 import pandas as pd
 
 
@@ -23,3 +28,35 @@ def group_points_by_minimum_error(points_df) -> pd.DataFrame:
         on=["a1", "a2", "rmse", "sample_size"]
     )
     return groupped
+
+
+def to_category_codes(series):
+    return series.astype("category").cat.codes
+
+
+def map_idx_to_matrix_indices(df):
+    df["user_id"] = to_category_codes(df["user_id"])
+    df["item_id"] = to_category_codes(df["item_id"])
+    return df
+
+
+def train_svd(df):
+    reader = Reader(rating_scale=(0, 1))
+    data = Dataset.load_from_df(df[['user_id', 'item_id', 'rating']], reader)
+
+    svd_algo = SVD()
+    error = cross_validate(svd_algo, data, cv=2)
+    return error
+
+
+def train_knn(df):
+    reader = Reader(rating_scale=(0, 1))
+    data = Dataset.load_from_df(df[['user_id', 'item_id', 'rating']], reader)
+
+    svd_algo = KNNBasic()
+    error = cross_validate(svd_algo, data, cv=2)
+    return error
+
+def train_autorec(df):
+    _, error_log = models.train_test_autorec(df)
+    return error_log

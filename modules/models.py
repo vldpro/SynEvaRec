@@ -1,5 +1,9 @@
-import time
-import scipy
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from scipy.sparse import csr_matrix
+from sklearn.model_selection import train_test_split
+
 import tensorflow.compat.v1 as tf
 import numpy as np
 from deepctr_torch.models import DeepFM
@@ -22,6 +26,50 @@ def RMSE(error, num):
 
 def MAE(error_mae, num):
     return (error_mae / num)
+
+
+def transform_long_table_to_sparse_matrix(df, test_size):
+    n_users = df.user_id.unique().shape[0]
+    n_items = df.item_id.unique().shape[0]
+
+    train_data, test_data = train_test_split(df, test_size=test_size)
+    train_data = pd.DataFrame(train_data)
+    test_data = pd.DataFrame(test_data)
+
+    train_row = []
+    train_col = []
+    train_rating = []
+
+    for line in train_data.itertuples():
+        u = line[1]
+        i = line[2]
+        train_row.append(u)
+        train_col.append(i)
+        train_rating.append(line[3])
+    train_matrix = csr_matrix((train_rating, (train_row, train_col)), shape=(n_users, n_items))
+
+    test_row = []
+    test_col = []
+    test_rating = []
+    for line in test_data.itertuples():
+        test_row.append(line[1])
+        test_col.append(line[2])
+        test_rating.append(line[3])
+    test_matrix = csr_matrix((test_rating, (test_row, test_col)), shape=(n_users, n_items))
+    print("Load data finished. Number of users:", n_users, "Number of items:", n_items)
+    return train_matrix.todok(), test_matrix.todok(), n_users, n_items
+
+
+def train_test_autorec(rating_df, **kwargs):
+    train_matrix, test_matrix, n_users, n_items = transform_long_table_to_sparse_matrix(rating_df, 0.1)
+    config = tf.compat.v1.ConfigProto()
+    config.gpu_options.allow_growth = True
+    with tf.compat.v1.Session(config=config) as sess:
+        model = IAutoRec(sess, n_users, n_items, epoch=50)
+        model.build_network()
+        print("Network built")
+        log = model.execute(train_matrix, test_matrix)
+    return model, log
 
 
 class IAutoRec():
