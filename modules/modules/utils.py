@@ -55,14 +55,14 @@ class GenericSurpriseModel:
         return surprise.accuracy.rmse(predictions)
 
 
-def evaluate_svd(df):
+def evaluate_svd(df, **kwargs):
     model = GenericSurpriseModel(surprise.SVD())
-    return model.evaluate(df)
+    return model.evaluate(df, **kwargs)
 
 
-def evaluate_knn(df):
+def evaluate_knn(df, **kwargs):
     model = GenericSurpriseModel(surprise.KNNBasic())
-    return model.evaluate(df)
+    return model.evaluate(df, **kwargs)
 
 
 def evaluate_autorec(df):

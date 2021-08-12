@@ -67,7 +67,7 @@ def train_test_autorec(rating_df, **kwargs):
     config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
     with tf.compat.v1.Session(config=config) as sess:
-        model = IAutoRec(sess, n_users, n_items, epoch=50)
+        model = IAutoRec(sess, n_users, n_items)
         model.build_network()
         print("Network built")
         log = model.execute(train_matrix, test_matrix)
