@@ -185,7 +185,7 @@ class DeepFmModel:
         self._deepfm = DeepFM(
             self._linear_feature_columns,
             self._dnn_feature_columns,
-            task='multiclass',
+            task='regression',
             device='cpu'
         )
         self._deepfm.compile("adam", "mse", metrics=['mse'], )
@@ -196,9 +196,9 @@ class DeepFmModel:
             train_model_input,
             target_values,
             batch_size=256,
-            epochs=10,
+            epochs=50,
             verbose=2,
-            validation_split=0.2
+            validation_split=0.1
         )
 
         return history
